@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KTLA 농장 매니저 로그인</title>
+    <!-- Bootstrap CSS 추가 -->
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: url('/static/img/background.jpg') no-repeat center center fixed; 
+            background-size: cover;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            font-family: Arial, sans-serif; /* 전문적인 폰트 */
+        }
+        .overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.95); /* 투명한 흰색 오버레이, 투명도 40% */
+            z-index: 1;
+        }
+        .container {
+            position: relative;
+            z-index: 2;
+            max-width: 400px;
+            padding: 20px;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        .btn-custom {
+            background-color: #3CB371; /* 덜 익은 바나나 색 */
+            border-color: #3CB371; /* 덜 익은 바나나 색 */
+            color: white;
+        }
+        .btn-custom:hover {
+            background-color: #ffd400; /* 익은 바나나 색 */
+            border-color: #ffd400; /* 익은 바나나 색 */
+        }
+        .alert-custom {
+            position: absolute;
+            top: 10px;
+            width: 100%;
+            left: 0;
+            text-align: center;
+            z-index: 1050;
+        }
+        .form-group label {
+            font-weight: bold; /* 전문적인 느낌 */
+        }
+        h2 {
+            color: #3CB371; /* 덜 익은 바나나 색 */
+            font-weight: bold;
+            margin-bottom: 20px;
+            position: relative;
+            z-index: 2; /* 투명도 제거 */
+        }
+    </style>
+</head>
+<body>
+    <div class="overlay"></div>
+    <h2 class="mb-4">KTLA 농장 매니저</h2>
+    <div class="container">
+        <form method="POST">
+            <div class="form-group">
+                <label for="user_id">사용자 ID</label>
+                <input type="text" class="form-control" id="user_id" name="user_id" required>
+            </div>
+            <div class="form-group">
+                <label for="password">비밀번호</label>
+                <input type="password" class="form-control" id="password" name="password" required>
+            </div>
+            <button type="submit" class="btn btn-custom btn-block">로그인</button>
+        </form>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="alert alert-{{ category }} alert-dismissible fade show alert-custom" role="alert">
+                    {{ message }}
+                </div>
+            {% endif %}
+        {% endwith %}
+    </div>
+    <!-- Bootstrap JS 추가 -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>

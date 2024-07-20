@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>농장 데이터 조회</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f0f2f5; /* 페이스북 배경색 */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-family: Arial, sans-serif; /* 전문적인 폰트 */
+        }
+        .container {
+            max-width: 1200px; /* 전체 너비를 넓혀서 한 줄에 3개 카드가 들어갈 수 있게 함 */
+            padding: 20px;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            margin-top: 20px;
+        }
+        .btn-custom {
+            background-color: #3CB371; /* 덜 익은 바나나 색 */
+            border-color: #3CB371; /* 덜 익은 바나나 색 */
+            color: white;
+        }
+        .btn-custom:hover {
+            background-color: #ffd400; /* 익은 바나나 색 */
+            border-color:  #ffd400; /* 익은 바나나 색 */
+        }
+        .alert-custom {
+            position: absolute;
+            top: 10px;
+            width: 100%;
+            left: 0;
+            text-align: center;
+            z-index: 1050;
+        }
+        .form-group label {
+            font-weight: bold; /* 전문적인 느낌 */
+        }
+        h1 {
+            color: black;
+            margin-bottom: 20px;
+        }
+        .card-custom {
+            margin-bottom: 1rem;
+        }
+        .card-header-custom {
+            background-color: #ffd400;
+            color: black;
+        }
+        .data-section {
+            margin-top: 1rem;
+        }
+        #datePickerContainer {
+            margin-top: 20px;
+            margin-bottom: 20px;
+        }
+        #datePicker {
+            color: black;
+        }
+        .navbar {
+            background-color: #3CB371; /* 덜 익은 바나나 색 */
+            border-bottom: 5px solid #3CB371; /* 덜 익은 바나나 색 */
+            width: 100%;
+        }
+        .navbar-brand, .nav-link {
+            color: white !important;
+        }
+    </style>
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.3/js/all.js"></script>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light">
+        <a class="navbar-brand" href="#">KTLA 농장 매니저</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ml-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="/">일지 작성</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/searchdata">일지 조회</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/farmaccounting">농업 회계</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/accountingdata">회계 조회</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/logout">로그아웃</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+    <div id="datePickerContainer" class="container text-center">
+        <h1  class="text-center" style="font-size: 30px;"> 날짜 선택</h1>
+        <input type="date" id="datePicker" class="form-control w-50 mx-auto">
+    </div>
+    <div class="container">
+        <h1 class="text-center" style="font-size: 25px;">농장 일지 조회</h1>
+        <div id="dataContainer" class="row">
+            <!-- 데이터가 여기에 표시됩니다 -->
+        </div>
+    </div>
+
+    <script>
+        // 오늘 날짜를 YYYY-MM-DD 형식으로 가져오는 함수
+        function getTodayDate() {
+            const today = new Date();
+            const yyyy = today.getFullYear();
+            const mm = String(today.getMonth() + 1).padStart(2, '0'); // 월은 0부터 시작하므로 1을 더함
+            const dd = String(today.getDate()).padStart(2, '0');
+            return `${yyyy}-${mm}-${dd}`;
+        }
+
+        // 오늘 날짜를 가져옴
+        const todayDate = getTodayDate();
+
+        // 카드 형식으로 데이터를 렌더링하는 함수
+        function renderCards(filteredData) {
+            let cardContent = '';
+            let generalInfoShown = false;
+            let fertilizerContent = '';
+            let laborContent = '';
+            let remarksContent = '';
+
+            filteredData.forEach((row, index) => {
+                // 일반 정보 카드 (한 번만 표시)
+                if (!generalInfoShown) {
+                    cardContent += `
+                        <div class="col-md-4 col-sm-6 col-12 card-custom"> <!-- 카드 크기 조정 -->
+                            <div class="card">
+                                <div class="card-header card-header-custom">
+                                    <h5 class="card-title mb-0">일반 정보</h5>
+                                </div>
+                                <div class="card-body">
+                                    <p class="card-text"><strong> 작성 일자 :</strong> ${row["작성일자"]}</p>
+                                    <p class="card-text"><strong> 작업 필지 :</strong> ${row["필지 선택"]}</p>
+                                    <p class="card-text"><strong> 날씨:</strong> ${row["날씨"]}</p>
+                                    <p class="card-text"><strong> 기온 (섭씨°C):</strong> ${row["기온 입력(섭씨°C)"]} 도 </p>
+                                    <p class="card-text"><strong> 습도 :</strong> ${row["습도 입력(%)"]} % </p>
+                                    <p class="card-text"><strong> 강수량 (mm):</strong> ${row["강수량 입력(선택 사항, mm)"]}</p>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    generalInfoShown = true;
+                }
+
+                // 비료 데이터 카드
+                if (row["농약 및 비료 사용 여부"] === "yes") {
+                    fertilizerContent += `
+                        <div class="col-md-4 col-sm-6 col-12 card-custom"> <!-- 카드 크기 조정 -->
+                            <div class="card">
+                                <div class="card-header card-header-custom">
+                                    <h5 class="card-title mb-0">비료 및 농약</h5>
+                                </div>
+                                <div class="card-body">
+                                    <p class="card-text"><strong>종류:</strong> ${row["종류"]}</p>
+                                    <p class="card-text"><strong>제품명:</strong> ${row["제품명"]}</p>
+                                    <p class="card-text"><strong>시비량:</strong> ${row["시비량"]}</p>
+                                    <p class="card-text"><strong>시비방식:</strong> ${row["시비방식"]}</p>
+                                    <p class="card-text"><strong>시비 비율:</strong> ${row["시비 비율"]}</p>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }
+
+                // 작업 데이터 카드
+                if (row["작업 인력 여부"] === "yes") {
+                    laborContent += `
+                        <div class="col-md-4 col-sm-6 col-12 card-custom"> <!-- 카드 크기 조정 -->
+                            <div class="card">
+                                <div class="card-header card-header-custom">
+                                    <h5 class="card-title mb-0 ">작업 기록</h5>
+                                </div>
+                                <div class="card-body">
+                                    <p class="card-text"><strong>작업 시간대:</strong> ${row["작업 시간대"]}</p>
+                                    <p class="card-text"><strong>작업 인력 수:</strong> ${row["작업 인력 수"]}</p>
+                                    <p class="card-text"><strong>작업 내용:</strong> ${row["작업 내용"]}</p>
+                                    <p class="card-text"><strong>작업 결과:</strong> ${row["작업 결과"]}</p>
+                                    <p class="card-text"><strong>작업 책임자:</strong> ${row["작업 책임자"]}</p>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }
+
+                // 비고 데이터 카드 (한 번만 표시)
+                if (row["비고 여부"] === "yes" && remarksContent === '') {
+                    remarksContent = `
+                        <div class="col-md-4 col-sm-6 col-12 card-custom"> <!-- 카드 크기 조정 -->
+                            <div class="card">
+                                <div class="card-header card-header-custom">
+                                    <h5 class="card-title mb-0">비고</h5>
+                                </div>
+                                <div class="card-body">
+                                    <p class="card-text"><strong>비고 내용:</strong> ${row["비고 내용"]}</p>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }
+            });
+
+            $('#dataContainer').html(cardContent + fertilizerContent + laborContent + remarksContent);
+        }
+
+        // 페이지가 로드되면 데이터 렌더링
+        $(document).ready(function () {
+            // 초기 렌더링: 오늘 날짜의 데이터를 표시
+            $('#datePicker').val(todayDate);
+            fetch('/getdata')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        renderCards(data.data.filter(row => row["작성일자"] === todayDate));
+                    } else {
+                        alert('데이터를 불러오는 데 실패했습니다.');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('서버와 통신 중 오류가 발생했습니다.');
+                });
+
+            // 날짜 선택 시 데이터 필터링 및 카드 렌더링
+            $('#datePicker').on('change', function () {
+                const selectedDate = $(this).val();
+                fetch('/getdata')
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            const filteredData = data.data.filter(row => row["작성일자"] === selectedDate);
+                            renderCards(filteredData);
+                        } else {
+                            alert('데이터를 불러오는 데 실패했습니다.');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('서버와 통신 중 오류가 발생했습니다.');
+                    });
+            });
+        });
+    </script>
+</body>
+</html>
