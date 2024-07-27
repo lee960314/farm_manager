@@ -4,36 +4,159 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>농장 일지 작성</title>
-
-
     <!-- Bootstrap CSS 추가 -->
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
-        <style>
-            body {
-                background-color: #f0f2f5; /* 페이스북 배경색 */
-            }
-            .navbar {
-                background-color: 	#3CB371; /* 덜 익은 바나나 색 */
-                border-bottom: 5px solid #3CB371; /* 덜 익은 바나나 색*/
-            }
-            .navbar-brand, .nav-link {
-                color: white !important;
-            }
-            .btn-custom {
-                background-color: #3CB371; /* 덜 익은 바나나 색 */
-                border-color: #3CB371; /* 덜 익은 바나나 색 */
-                color: white;
-            }
-            .btn-custom:hover {
-                background-color: #ffd400; /* 익은 바나나 색 */
-                border-color:  #ffd400; /* 익은 바나나 색 */
-            }
-            .card-custom {
-                margin-bottom: 1rem;
-            }
-        </style>
+    <!-- jQuery UI CSS 추가 -->
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <style>
+        body {
+            background-color: #f0f2f5; /* 페이스북 배경색 */
+        }
+        .navbar {
+            background-color: #3CB371; /* 덜 익은 바나나 색 */
+            border-bottom: 5px solid #3CB371; /* 덜 익은 바나나 색 */
+        }
+        .navbar-brand, .nav-link {
+            color: white !important;
+        }
+        .btn-custom {
+            background-color: #3CB371; /* 덜 익은 바나나 색 */
+            border-color: #3CB371; /* 덜 익은 바나나 색 */
+            color: white;
+        }
+        .btn-custom:hover {
+            background-color: #ffd400; /* 익은 바나나 색 */
+            border-color: #ffd400; /* 익은 바나나 색 */
+        }
+        .card-custom {
+            margin-bottom: 1rem;
+        }
+
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light">
+        <a class="navbar-brand" href="#">KTLA 농장 매니저</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ml-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="/">일지 작성</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/searchdata">일지 조회</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/farmaccounting">농장 회계</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/accountingdata">회계 조회</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/logout">로그아웃</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+    <div class="container mt-5">
+        <h1>농장 일지 작성</h1>
+        <hr class>
+        <form id="farmForm">
+            <div class="form-group">
+                <label for="date">작성일자</label>
+                <input type="text" class="form-control" id="date" name="date" placeholder="날짜를 선택하세요">
+            </div>
+            <div class="form-group">
+                <label for="field">필지 선택</label>
+                <select class="form-control" id="field" name="field">
+                    <option value="25헥타르">25헥타르</option>
+                    <option value="신개지">신개지</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="weather">날씨</label>
+                <select class="form-control" id="weather" name="weather">
+                    <option value="맑음">맑음</option>
+                    <option value="구름 많음">구름 많음</option>
+                    <option value="흐림">흐림</option>
+                    <option value="비">비</option>
+                    <option value="눈">눈</option>
+                    <option value="바람">바람</option>
+                    <option value="안개">안개</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="temperature">기온 입력(섭씨°C)</label>
+                <input type="number" class="form-control" id="temperature" name="temperature" placeholder="예: 25">
+            </div>
+            <div class="form-group">
+                <label for="humidity">습도 입력(%)</label>
+                <input type="number" class="form-control" id="humidity" name="humidity" placeholder="예: 60">
+            </div>
+            <div class="form-group">
+                <label for="rainfall">강수량 입력(선택 사항, mm)</label>
+                <input type="number" class="form-control" id="rainfall" name="rainfall" placeholder="예: 10">
+            </div>
+            <hr class="section-divider">
+            <div class="form-group">
+                <label for="use-fertilizer">농약 및 비료 사용 여부</label>
+                <select class="form-control" id="use-fertilizer" name="use-fertilizer" onchange="toggleFertilizerFields()">
+                    <option value="no">없음</option>
+                    <option value="yes">있음</option>
+                </select>
+            </div>
+            <div id="fertilizer-fields" style="display: none;">
+                <div id="fertilizer-container"></div>
+                <button type="button" class="btn btn-custom btn-sm" id="add-fertilizer">농약 및 비료 추가</button>
+            </div>
+            <hr class="section-divider">
+            <div class="form-group mt-3">
+                <label for="use-labor">작업 인력 사용 여부</label>
+                <select class="form-control" id="use-labor" name="use-labor" onchange="toggleLaborFields()">
+                    <option value="no">없음</option>
+                    <option value="yes">있음</option>
+                </select>
+            </div>
+            <div id="labor-fields" style="display: none;">
+                <div id="labor-container"></div>
+                <button type="button" class="btn btn-custom btn-sm" id="add-labor">작업 인력 추가</button>
+            </div>
+            <hr class="section-divider">
+            <div class="form-group mt-3">
+                <label for="use-remarks">비고</label>
+                <select class="form-control" id="use-remarks" name="use-remarks" onchange="toggleRemarkField()">
+                    <option value="no">없음</option>
+                    <option value="yes">있음</option>
+                </select>
+            </div>
+            <div id="remark-field" style="display: none;">
+                <div class="form-group">
+                    <label for="remark-text">비고 내용</label>
+                    <textarea class="form-control" id="remark-text" name="remark-text" rows="6" placeholder="비고 내용을 입력하세요"></textarea>
+                </div>
+            </div>
+            <hr class="section-divider">
+            <button type="submit" class="btn btn-custom btn-lg btn-block mt-3">저장</button>
+        </form>
+    </div>
+    <!-- jQuery 및 jQuery UI JS 추가 -->
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
+        $(function() {
+            // Datepicker 적용
+            $("#date").datepicker({
+                dateFormat: 'yy-mm-dd',
+                dayNames: ['일요일', '월요일', '화요일', '수요일', '목요일', '금요일', '토요일'],
+                dayNamesMin: ['일', '월', '화', '수', '목', '금', '토'],
+                monthNames: ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월'],
+                monthNamesShort: ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월']
+            }).datepicker("setDate", new Date()); // 오늘 날짜로 설정
+
             let countFertilizer = 0;
             let countLabor = 0;
             const maxItems = 6;
@@ -162,184 +285,59 @@
                     card.querySelector('.card-title').textContent = `작업 인력 기록 ${index + 1}`;
                 });
             }
-        });
-    </script>
-</head>
-<body>
-    <nav class="navbar navbar-expand-lg navbar-light">
-        <a class="navbar-brand" href="#">KTLA 농장 매니저</a>
-        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse" id="navbarNav">
-            <ul class="navbar-nav ml-auto">
-                <li class="nav-item">
-                    <a class="nav-link" href="/">일지 작성</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="/searchdata">일지 조회</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="/farmaccounting">농업 회계</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="/accountingdata">회계 조회</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="/logout">로그아웃</a>
-                </li>
-            </ul>
-        </div>
-    </nav>
-    <div class="container mt-5">
-        <h1 style="font-size: 25px;">아래에 일지를 작성 하세요!</h1>
-        <div >
-        </div>
-        <form id="farmForm">
-            <div class="form-group">
-                <label for="date">작성일자</label>
-                <select class="form-control" id="date" name="date">
-                    <!-- 날짜 목록 추가 -->
-                    <script>
-                        document.addEventListener('DOMContentLoaded', function() {
-                            const dateSelect = document.getElementById('date');
-                            const days = ['일요일', '월요일', '화요일', '수요일', '목요일', '금요일', '토요일'];
-                            const startDate = new Date('2024-01-01');
-                            const endDate = new Date('2024-12-31');
 
-                            for (let d = startDate; d <= endDate; d.setDate(d.getDate() + 1)) {
-                                const dateStr = d.toISOString().split('T')[0];
-                                const dayName = days[d.getUTCDay()];
-                                const option = document.createElement('option');
-                                option.value = dateStr;
-                                option.textContent = `${dateStr} ${dayName}`;
-                                dateSelect.appendChild(option);
-                            }
-                        });
-                    </script>
-                </select>
-            </div>
-            <div class="form-group">
-                <label for="field">필지 선택</label>
-                <select class="form-control" id="field" name="field">
-                    <option value="25헥타르">25헥타르</option>
-                    <option value="신개지">신개지</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label for="weather">날씨</label>
-                <select class="form-control" id="weather" name="weather">
-                    <option value="맑음">맑음</option>
-                    <option value="구름 많음">구름 많음</option>
-                    <option value="흐림">흐림</option>
-                    <option value="비">비</option>
-                    <option value="눈">눈</option>
-                    <option value="바람">바람</option>
-                    <option value="안개">안개</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label for="temperature">기온 입력(섭씨°C)</label>
-                <input type="number" class="form-control" id="temperature" name="temperature" placeholder="예: 25">
-            </div>
-            <div class="form-group">
-                <label for="humidity">습도 입력(%)</label>
-                <input type="number" class="form-control" id="humidity" name="humidity" placeholder="예: 60">
-            </div>
-            <div class="form-group">
-                <label for="rainfall">강수량 입력(선택 사항, mm)</label>
-                <input type="number" class="form-control" id="rainfall" name="rainfall" placeholder="예: 10">
-            </div>
-            <div class="form-group">
-                <label for="use-fertilizer">농약 및 비료 사용 여부</label>
-                <select class="form-control" id="use-fertilizer" name="use-fertilizer" onchange="toggleFertilizerFields()">
-                    <option value="no">없음</option>
-                    <option value="yes">있음</option>
-                </select>
-            </div>
-            <div id="fertilizer-fields" style="display: none;">
-                <div id="fertilizer-container"></div>
-                <button type="button" class="btn btn-custom btn-sm" id="add-fertilizer">농약 및 비료 추가</button>
-            </div>
-            <div class="form-group mt-3">
-                <label for="use-labor">작업 인력 사용 여부</label>
-                <select class="form-control" id="use-labor" name="use-labor" onchange="toggleLaborFields()">
-                    <option value="no">없음</option>
-                    <option value="yes">있음</option>
-                </select>
-            </div>
-            <div id="labor-fields" style="display: none;">
-                <div id="labor-container"></div>
-                <button type="button" class="btn btn-custom btn-sm" id="add-labor">작업 인력 추가</button>
-            </div>
-            <div class="form-group mt-3">
-                <label for="use-remarks">비고</label>
-                <select class="form-control" id="use-remarks" name="use-remarks" onchange="toggleRemarkField()">
-                    <option value="no">없음</option>
-                    <option value="yes">있음</option>
-                </select>
-            </div>
-            <div id="remark-field" style="display: none;">
-                <div class="form-group">
-                    <label for="remark-text">비고 내용</label>
-                    <textarea class="form-control" id="remark-text" name="remark-text" rows="6" placeholder="비고 내용을 입력하세요"></textarea>
-                </div>
-            </div>
-            <button type="submit" class="btn btn-custom btn-lg btn-block mt-3">저장</button>
-        </form>
-    </div>
-    <!-- Bootstrap JS 추가 -->
-    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-    <script>
-        function toggleFertilizerFields() {
-            const useFertilizer = document.getElementById('use-fertilizer').value;
-            const fertilizerFields = document.getElementById('fertilizer-fields');
-            fertilizerFields.style.display = (useFertilizer === 'yes') ? 'block' : 'none';
-        }
+            // 비료 필드 토글
+            $("#use-fertilizer").on('change', toggleFertilizerFields);
+            function toggleFertilizerFields() {
+                const useFertilizer = $("#use-fertilizer").val();
+                $("#fertilizer-fields").toggle(useFertilizer === 'yes');
+            }
 
-        function toggleLaborFields() {
-            const useLabor = document.getElementById('use-labor').value;
-            const laborFields = document.getElementById('labor-fields');
-            laborFields.style.display = (useLabor === 'yes') ? 'block' : 'none';
-        }
+            // 작업 인력 필드 토글
+            $("#use-labor").on('change', toggleLaborFields);
+            function toggleLaborFields() {
+                const useLabor = $("#use-labor").val();
+                $("#labor-fields").toggle(useLabor === 'yes');
+            }
 
-        function toggleRemarkField() {
-            const useRemarks = document.getElementById('use-remarks').value;
-            const remarkField = document.getElementById('remark-field');
-            remarkField.style.display = (useRemarks === 'yes') ? 'block' : 'none';
-        }
+            // 비고 필드 토글
+            $("#use-remarks").on('change', toggleRemarkField);
+            function toggleRemarkField() {
+                const useRemarks = $("#use-remarks").val();
+                $("#remark-field").toggle(useRemarks === 'yes');
+            }
 
-        document.getElementById('farmForm').addEventListener('submit', function(event) {
-            event.preventDefault();
-            const formData = new FormData(event.target);
-            const data = {};
-            formData.forEach((value, key) => {
-                data[key] = value;
-            });
+            // 폼 제출 처리
+            $("#farmForm").on('submit', function(event) {
+                event.preventDefault();
+                const formData = $(this).serializeArray();
+                const data = {};
+                formData.forEach(item => {
+                    data[item.name] = item.value;
+                });
 
-            console.log('Form data to be sent:', data); // 디버깅용 콘솔 로그 추가
+                console.log('Form data to be sent:', data); // 디버깅용 콘솔 로그 추가
 
-            fetch('/farmdata', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(data)
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    alert('데이터가 성공적으로 저장되었습니다.');
-                    location.reload(); // 페이지 리로드
-                } else {
-                    alert('데이터 저장에 실패했습니다.');
-                }
-            })
-            .catch((error) => {
-                console.error('Error:', error);
-                alert('서버와 통신 중 오류가 발생했습니다.');
+                fetch('/farmdata', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('데이터가 성공적으로 저장되었습니다.');
+                        window.location.href = '/searchdata'; // 조회 페이지로 리다이렉트
+                    } else {
+                        alert('데이터 저장에 실패했습니다.');
+                    }
+                })
+                .catch((error) => {
+                    console.error('Error:', error);
+                    alert('서버와 통신 중 오류가 발생했습니다.');
+                });
             });
         });
     </script>
