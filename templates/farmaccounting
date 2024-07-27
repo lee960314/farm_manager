@@ -1,0 +1,299 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>농장 회계 내역 작성</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <style>
+        body {
+            background-color: #f0f2f5; /* 페이스북 배경색 */
+        }
+        .navbar {
+            background-color: #3CB371; /* 덜 익은 바나나 색 */
+            border-bottom: 5px solid #3CB371; /* 덜 익은 바나나 색 */
+        }
+        .navbar-brand, .nav-link {
+            color: white !important;
+        }
+        .btn-custom {
+            background-color: #3CB371; /* 덜 익은 바나나 색 */
+            border-color: #3CB371; /* 덜 익은 바나나 색 */
+            color: white;
+        }
+        .btn-custom:hover {
+            background-color: #ffd400; /* 익은 바나나 색 */
+            border-color: #ffd400; /* 익은 바나나 색 */
+        }
+        .card-custom {
+            margin-bottom: 1rem;
+            padding: 1rem;
+            border: 1px solid #ddd;
+            border-radius: 0.25rem;
+            background-color: #fff;
+        }
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        .remove-btn {
+            margin-top: -10px;
+        }
+
+        .ui-datepicker {
+            background: white;
+            border: 1px solid #aaa;
+            padding: .2em .2em 0;
+            width: 17em;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light">
+        <a class="navbar-brand" href="#">KTLA 농장 매니저</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ml-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="/">일지 작성</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/searchdata">일지 조회</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/farmaccounting">농장 회계</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/accountingdata">회계 조회</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/logout">로그아웃</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+    <div class="container mt-5">
+        <h1>농장 회계 내역 작성</h1>
+        <hr class="section-divider">
+        <form id="accountingForm">
+            <div class="form-group">
+                <label for="date">작성일자</label>
+                <input type="text" class="form-control" id="date" name="date" placeholder="날짜를 선택하세요">
+            </div>
+            <hr class="section-divider">
+            <div id="labor-fields">
+                <h3>인건비</h3>
+            </div>
+            <button type="button" class="btn btn-custom btn-sm" id="add-labor">인건비 추가</button>
+            <hr class="section-divider">
+
+            <div id="operating-fields">
+                <h3>운영비</h3>
+            </div>
+            <button type="button" class="btn btn-custom btn-sm" id="add-operating">운영비 추가</button>
+            <hr class="section-divider">
+
+            <div id="subcontracting-fields">
+                <h3>하청비</h3>
+            </div>
+            <button type="button" class="btn btn-custom btn-sm" id="add-subcontracting">하청비 추가</button>
+            <hr class="section-divider">
+
+            <button type="submit" class="btn btn-custom btn-lg btn-block mt-3">저장</button>
+        </form>
+    </div>
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script>
+        function formatNumber(input) {
+            let value = input.value.replace(/,/g, '');
+            if (!isNaN(value) && value !== '') {
+                input.value = parseFloat(value).toLocaleString('en-US');
+            }
+        }
+
+        function calculateTotal(index) {
+            const amount = document.getElementById(`amount-${index}`).value.replace(/,/g, '');
+            const dailyWage = document.getElementById(`daily-wage-${index}`).value.replace(/,/g, '');
+            const total = amount * dailyWage;
+            if (!isNaN(total)) {
+                document.getElementById(`total-${index}`).value = total.toLocaleString('en-US');
+            }
+        }
+
+        $(function() {
+            $("#date").datepicker({
+                dateFormat: 'yy-mm-dd',
+                dayNames: ['일요일', '월요일', '화요일', '수요일', '목요일', '금요일', '토요일'],
+                dayNamesMin: ['일', '월', '화', '수', '목', '금', '토'],
+                monthNames: ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월'],
+                monthNamesShort: ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월']
+            }).datepicker("setDate", new Date());
+
+            let laborCount = 0;
+            let operatingCount = 0;
+            let subcontractingCount = 0;
+            const maxItems = 10;
+
+            function addLaborFields() {
+                if (laborCount < maxItems) {
+                    laborCount++;
+                    const newField = `
+                        <div class="card-custom labor-group-${laborCount}">
+                            <div class="form-group">
+                                <label for="labor-type-${laborCount}">인건비 항목</label>
+                                <select class="form-control" id="labor-type-${laborCount}" name="labor-type-${laborCount}">
+                                    <option value="일용직">일용직</option>
+                                    <option value="계약직">계약직</option>
+                                    <option value="정규직">정규직</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="amount-${laborCount}">인원</label>
+                                <input type="text" class="form-control" id="amount-${laborCount}" name="amount-${laborCount}" placeholder="예: 5" oninput="formatNumber(this); calculateTotal(${laborCount})">
+                            </div>
+                            <div class="form-group">
+                                <label for="daily-wage-${laborCount}">일당</label>
+                                <input type="text" class="form-control" id="daily-wage-${laborCount}" name="daily-wage-${laborCount}" placeholder="예: 100,000" oninput="formatNumber(this); calculateTotal(${laborCount})">
+                            </div>
+                            <div class="form-group">
+                                <label for="total-${laborCount}">합계</label>
+                                <input type="text" class="form-control" id="total-${laborCount}" name="total-${laborCount}" readonly>
+                            </div>
+                            <div class="form-group">
+                                <label for="labor-currency-${laborCount}">화폐</label>
+                                <select class="form-control" id="labor-currency-${laborCount}" name="labor-currency-${laborCount}">
+                                    <option value="LAK">라오스 낍</option>
+                                    <option value="CNY">인민폐</option>
+                                    <option value="USD">달러</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="labor-remarks-${laborCount}">비고</label>
+                                <textarea class="form-control" id="labor-remarks-${laborCount}" name="labor-remarks-${laborCount}" rows="3" placeholder="비고 내용을 입력하세요"></textarea>
+                            </div>
+                            <button type="button" class="btn btn-danger btn-sm remove-btn" data-target=".labor-group-${laborCount}" style="margin-top: 5px;">삭제</button>
+                        </div>
+                    `;
+                    $('#labor-fields').append(newField);
+                } else {
+                    alert('최대 10개의 항목만 추가할 수 있습니다.');
+                }
+            }
+
+            function addOperatingFields() {
+                if (operatingCount < maxItems) {
+                    operatingCount++;
+                    const newField = `
+                        <div class="card-custom operating-group-${operatingCount}">
+                            <div class="form-group">
+                                <label for="item-${operatingCount}">항목</label>
+                                <input type="text" class="form-control" id="item-${operatingCount}" name="item-${operatingCount}" placeholder="예: 비료 구매">
+                            </div>
+                            <div class="form-group">
+                                <label for="cost-${operatingCount}">비용</label>
+                                <input type="text" class="form-control" id="cost-${operatingCount}" name="cost-${operatingCount}" placeholder="예: 100,000" oninput="formatNumber(this);">
+                            </div>
+                            <div class="form-group">
+                                <label for="operating-currency-${operatingCount}">화폐</label>
+                                <select class="form-control" id="operating-currency-${operatingCount}" name="operating-currency-${operatingCount}">
+                                    <option value="LAK">라오스 낍</option>
+                                    <option value="CNY">인민폐</option>
+                                    <option value="USD">달러</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="operating-remarks-${operatingCount}">비고</label>
+                                <textarea class="form-control" id="operating-remarks-${operatingCount}" name="operating-remarks-${operatingCount}" rows="3" placeholder="비고 내용을 입력하세요"></textarea>
+                            </div>
+                            <button type="button" class="btn btn-danger btn-sm remove-btn" data-target=".operating-group-${operatingCount}" style="margin-top: 5px;">삭제</button>
+                        </div>
+                    `;
+                    $('#operating-fields').append(newField);
+                } else {
+                    alert('최대 10개의 항목만 추가할 수 있습니다.');
+                }
+            }
+
+            function addSubcontractingFields() {
+                if (subcontractingCount < maxItems) {
+                    subcontractingCount++;
+                    const newField = `
+                        <div class="card-custom subcontracting-group-${subcontractingCount}">
+                            <div class="form-group">
+                                <label for="task-name-${subcontractingCount}">하청 작업 이름</label>
+                                <input type="text" class="form-control" id="task-name-${subcontractingCount}" name="task-name-${subcontractingCount}" placeholder="예: 잡초 제거">
+                            </div>
+                            <div class="form-group">
+                                <label for="subcontracting-cost-${subcontractingCount}">비용</label>
+                                <input type="text" class="form-control" id="subcontracting-cost-${subcontractingCount}" name="subcontracting-cost-${subcontractingCount}" placeholder="예: 100,000" oninput="formatNumber(this);">
+                            </div>
+                            <div class="form-group">
+                                <label for="subcontracting-currency-${subcontractingCount}">화폐</label>
+                                <select class="form-control" id="subcontracting-currency-${subcontractingCount}" name="subcontracting-currency-${subcontractingCount}">
+                                    <option value="LAK">라오스 낍</option>
+                                    <option value="CNY">인민폐</option>
+                                    <option value="USD">달러</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="subcontracting-remarks-${subcontractingCount}">비고</label>
+                                <textarea class="form-control" id="subcontracting-remarks-${subcontractingCount}" name="subcontracting-remarks-${subcontractingCount}" rows="3" placeholder="비고 내용을 입력하세요"></textarea>
+                            </div>
+                            <button type="button" class="btn btn-danger btn-sm remove-btn" data-target=".subcontracting-group-${subcontractingCount}" style="margin-top: 5px;">삭제</button>
+                        </div>
+                    `;
+                    $('#subcontracting-fields').append(newField);
+                } else {
+                    alert('최대 10개의 항목만 추가할 수 있습니다.');
+                }
+            }
+
+            $(document).on('click', '.remove-btn', function() {
+                $($(this).data('target')).remove();
+            });
+
+            $('#add-labor').click(addLaborFields);
+            $('#add-operating').click(addOperatingFields);
+            $('#add-subcontracting').click(addSubcontractingFields);
+
+            $("#accountingForm").on('submit', function(event) {
+                event.preventDefault();
+                const formData = $(this).serializeArray();
+                const data = {};
+                formData.forEach(item => {
+                    data[item.name] = item.value;
+                });
+
+                console.log('Form data to be sent:', data); // 디버깅용 콘솔 로그 추가
+
+                fetch('/farmaccounting', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('데이터가 성공적으로 저장되었습니다.');
+                    } else {
+                        alert('데이터 저장에 실패했습니다.');
+                    }
+                })
+                .catch((error) => {
+                    console.error('Error:', error);
+                    alert('서버와 통신 중 오류가 발생했습니다.');
+                });
+            });
+        });
+    </script>
+</body>
+</html>
+```
