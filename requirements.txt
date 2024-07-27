@@ -12,3 +12,10 @@ streamlit
 gspread
 oauth2client
 firebase-admin
+streamlit
+Flask
+firebase-admin
+google-auth
+google-auth-oauthlib
+google-auth-httplib2
+google-api-python-client
