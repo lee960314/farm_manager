@@ -47,6 +47,7 @@
         }
         .card-custom {
             margin-bottom: 1rem;
+            flex: 1 1 auto; /* 카드 크기를 동일하게 설정 */
         }
         .card-header-custom {
             background-color: #ffd400;
@@ -70,9 +71,21 @@
         .navbar-brand, .nav-link {
             color: white !important;
         }
+        .field-section {
+            margin-top: 2rem;
+        }
+        .field-section h2 {
+            margin-bottom: 1rem;
+        }
+        .card-deck {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
     </style>
     <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.3/js/all.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>
 </head>
 <body>
     <nav class="navbar navbar-expand-lg navbar-light">
@@ -89,7 +102,7 @@
                     <a class="nav-link" href="/searchdata">일지 조회</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="/farmaccounting">농업 회계</a>
+                    <a class="nav-link" href="/farmaccounting">농장 회계</a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link" href="/accountingdata">회계 조회</a>
@@ -106,7 +119,7 @@
     </div>
     <div class="container">
         <h1 class="text-center" style="font-size: 25px;">농장 일지 조회</h1>
-        <div id="dataContainer" class="row">
+        <div id="dataContainer">
             <!-- 데이터가 여기에 표시됩니다 -->
         </div>
     </div>
@@ -124,95 +137,112 @@
         // 오늘 날짜를 가져옴
         const todayDate = getTodayDate();
 
+        // 필지별로 데이터를 그룹화하는 함수
+        function groupByField(data) {
+            return data.reduce((acc, row) => {
+                const field = row["필지 선택"];
+                if (!acc[field]) {
+                    acc[field] = [];
+                }
+                acc[field].push(row);
+                return acc;
+            }, {});
+        }
+
         // 카드 형식으로 데이터를 렌더링하는 함수
-        function renderCards(filteredData) {
-            let cardContent = '';
-            let generalInfoShown = false;
-            let fertilizerContent = '';
-            let laborContent = '';
-            let remarksContent = '';
+        function renderCards(data) {
+            const groupedData = groupByField(data);
+            let content = '';
 
-            filteredData.forEach((row, index) => {
-                // 일반 정보 카드 (한 번만 표시)
-                if (!generalInfoShown) {
-                    cardContent += `
-                        <div class="col-md-4 col-sm-6 col-12 card-custom"> <!-- 카드 크기 조정 -->
-                            <div class="card">
-                                <div class="card-header card-header-custom">
-                                    <h5 class="card-title mb-0">일반 정보</h5>
-                                </div>
-                                <div class="card-body">
-                                    <p class="card-text"><strong> 작성 일자 :</strong> ${row["작성일자"]}</p>
-                                    <p class="card-text"><strong> 작업 필지 :</strong> ${row["필지 선택"]}</p>
-                                    <p class="card-text"><strong> 날씨:</strong> ${row["날씨"]}</p>
-                                    <p class="card-text"><strong> 기온 (섭씨°C):</strong> ${row["기온 입력(섭씨°C)"]} 도 </p>
-                                    <p class="card-text"><strong> 습도 :</strong> ${row["습도 입력(%)"]} % </p>
-                                    <p class="card-text"><strong> 강수량 (mm):</strong> ${row["강수량 입력(선택 사항, mm)"]}</p>
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                    generalInfoShown = true;
-                }
+            Object.keys(groupedData).forEach(field => {
+                const fieldData = groupedData[field];
+                const generalInfo = fieldData[0]; // 첫 번째 항목에서 일반 정보를 가져옴
 
-                // 비료 데이터 카드
-                if (row["농약 및 비료 사용 여부"] === "yes") {
-                    fertilizerContent += `
-                        <div class="col-md-4 col-sm-6 col-12 card-custom"> <!-- 카드 크기 조정 -->
-                            <div class="card">
-                                <div class="card-header card-header-custom">
-                                    <h5 class="card-title mb-0">비료 및 농약</h5>
-                                </div>
-                                <div class="card-body">
-                                    <p class="card-text"><strong>종류:</strong> ${row["종류"]}</p>
-                                    <p class="card-text"><strong>제품명:</strong> ${row["제품명"]}</p>
-                                    <p class="card-text"><strong>시비량:</strong> ${row["시비량"]}</p>
-                                    <p class="card-text"><strong>시비방식:</strong> ${row["시비방식"]}</p>
-                                    <p class="card-text"><strong>시비 비율:</strong> ${row["시비 비율"]}</p>
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                }
+                content += `<div class="field-section">
+                                <h2>필지: ${field}</h2>
+                                <div class="card-deck">
+                                    <div class="card-custom">
+                                        <div class="card">
+                                            <div class="card-header card-header-custom">
+                                                <h5 class="card-title mb-0">일반 정보</h5>
+                                            </div>
+                                            <div class="card-body">
+                                                <p class="card-text"><strong> 작성 일자 :</strong> ${generalInfo["작성일자"]}</p>
+                                                <p class="card-text"><strong> 작업 필지 :</strong> ${generalInfo["필지 선택"]}</p>
+                                                <p class="card-text"><strong> 날씨:</strong> ${generalInfo["날씨"]}</p>
+                                                <p class="card-text"><strong> 기온 (섭씨°C):</strong> ${generalInfo["기온 입력(섭씨°C)"]} 도 </p>
+                                                <p class="card-text"><strong> 습도 :</strong> ${generalInfo["습도 입력(%)"]} % </p>
+                                                <p class="card-text"><strong> 강수량 (mm):</strong> ${generalInfo["강수량 입력(선택 사항, mm)"]}</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="card-custom">
+                                        <div class="card">
+                                            <div class="card-header card-header-custom">
+                                                <h5 class="card-title mb-0">비료 및 농약</h5>
+                                            </div>
+                                            <div class="card-body">`;
 
-                // 작업 데이터 카드
-                if (row["작업 인력 여부"] === "yes") {
-                    laborContent += `
-                        <div class="col-md-4 col-sm-6 col-12 card-custom"> <!-- 카드 크기 조정 -->
-                            <div class="card">
-                                <div class="card-header card-header-custom">
-                                    <h5 class="card-title mb-0 ">작업 기록</h5>
-                                </div>
-                                <div class="card-body">
-                                    <p class="card-text"><strong>작업 시간대:</strong> ${row["작업 시간대"]}</p>
-                                    <p class="card-text"><strong>작업 인력 수:</strong> ${row["작업 인력 수"]}</p>
-                                    <p class="card-text"><strong>작업 내용:</strong> ${row["작업 내용"]}</p>
-                                    <p class="card-text"><strong>작업 결과:</strong> ${row["작업 결과"]}</p>
-                                    <p class="card-text"><strong>작업 책임자:</strong> ${row["작업 책임자"]}</p>
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                }
+                fieldData.forEach(row => {
+                    if (row["농약 및 비료 사용 여부"] === "yes") {
+                        content += `
+                            <p class="card-text"><strong>종류:</strong> ${row["종류"]}</p>
+                            <p class="card-text"><strong>제품명:</strong> ${row["제품명"]}</p>
+                            <p class="card-text"><strong>시비량:</strong> ${row["시비량"]}</p>
+                            <p class="card-text"><strong>시비방식:</strong> ${row["시비방식"]}</p>
+                            <p class="card-text"><strong>시비 비율:</strong> ${row["시비 비율"]}</p>
+                            <hr>`;
+                    }
+                });
 
-                // 비고 데이터 카드 (한 번만 표시)
-                if (row["비고 여부"] === "yes" && remarksContent === '') {
-                    remarksContent = `
-                        <div class="col-md-4 col-sm-6 col-12 card-custom"> <!-- 카드 크기 조정 -->
-                            <div class="card">
-                                <div class="card-header card-header-custom">
-                                    <h5 class="card-title mb-0">비고</h5>
+                content += `       </div>
+                                        </div>
+                                    </div>
+                                    <div class="card-custom">
+                                        <div class="card">
+                                            <div class="card-header card-header-custom">
+                                                <h5 class="card-title mb-0">작업 기록</h5>
+                                            </div>
+                                            <div class="card-body">`;
+
+                fieldData.forEach(row => {
+                    if (row["작업 인력 여부"] === "yes") {
+                        content += `
+                            <p class="card-text"><strong>작업 시간대:</strong> ${row["작업 시간대"]}</p>
+                            <p class="card-text"><strong>작업 인력 수:</strong> ${row["작업 인력 수"]}</p>
+                            <p class="card-text"><strong>작업 내용:</strong> ${row["작업 내용"]}</p>
+                            <p class="card-text"><strong>작업 결과:</strong> ${row["작업 결과"]}</p>
+                            <p class="card-text"><strong>작업 책임자:</strong> ${row["작업 책임자"]}</p>
+                            <hr>`;
+                    }
+                });
+
+                content += `       </div>
+                                        </div>
+                                    </div>
+                                    <div class="card-custom">
+                                        <div class="card">
+                                            <div class="card-header card-header-custom">
+                                                <h5 class="card-title mb-0">비고</h5>
+                                            </div>
+                                            <div class="card-body">`;
+
+                fieldData.forEach(row => {
+                    if (row["비고 여부"] === "yes") {
+                        content += `
+                            <p class="card-text"><strong>비고 내용:</strong> ${row["비고 내용"]}</p>
+                            <hr>`;
+                    }
+                });
+
+                content += `       </div>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div class="card-body">
-                                    <p class="card-text"><strong>비고 내용:</strong> ${row["비고 내용"]}</p>
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                }
+                            </div>`;
             });
 
-            $('#dataContainer').html(cardContent + fertilizerContent + laborContent + remarksContent);
+            $('#dataContainer').html(content);
         }
 
         // 페이지가 로드되면 데이터 렌더링
