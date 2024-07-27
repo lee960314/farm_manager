@@ -8,3 +8,7 @@ MarkupSafe==2.1.5
 Werkzeug==3.0.3
 gspread
 oauth2client
+streamlit
+gspread
+oauth2client
+firebase-admin
